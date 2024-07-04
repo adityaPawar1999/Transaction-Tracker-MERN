@@ -8,7 +8,7 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
-mongoose.connect('mongodb://127.0.0.1:27017/transactionsDB');
+mongoose.connect('mongodb://127.0.0.1:27017/transactionsDB', { useNewUrlParser: true, useUnifiedTopology: true });
 
 const transactionSchema = new mongoose.Schema({
     id: Number,
@@ -151,18 +151,6 @@ app.get('/pie-chart', async (req, res) => {
         res.status(500).send(error);
     }
 });
-
-
-
-
-
-
-
-
-
-
-
-
 // Combine all statistics into one response
 app.get('/combined-statistics', async (req, res) => {
     const { month } = req.query;
@@ -198,7 +186,6 @@ async function getStatistics(month) {
         totalNotSoldItems
     };
 }
-
 async function getBarChart(month) {
     const startDate = new Date(`2021-${month}-01`);
     const endDate = new Date(startDate);
@@ -234,7 +221,7 @@ async function getBarChart(month) {
         else if (transaction.price <= 900) priceRanges['801-900']++;
         else priceRanges['901-above']++;
     });
-a
+
     return priceRanges;
 }
 
@@ -254,9 +241,21 @@ async function getPieChart(month) {
     }));
 }
 
+app.get('/combined-statistics', async (req, res) => {
+    const { month } = req.query;
+    try {
+        const [transactions, statistics, barChart, pieChart] = await Promise.all([
+            Transaction.find({ dateOfSale: { $gte: new Date(`2021-${month}-01`), $lt: new Date(`2021-${Number(month) + 1}-01`) } }),
+            getStatistics(month),
+            getBarChart(month),
+            getPieChart(month)
+        ]);
 
-
-
+        res.json({ transactions, statistics, barChart, pieChart });
+    } catch (error) {
+        res.status(500).send(error);
+    }
+});
 
 
 
@@ -276,3 +275,5 @@ app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 const take = 0;
 console.log(+take)
+
+console.log('hello')
