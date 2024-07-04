@@ -21,7 +21,6 @@ const transactionSchema = new mongoose.Schema({
 });
 
 const Transaction = mongoose.model('Transaction', transactionSchema);
-
 // Fetch JSON data and initialize the database
 app.get('/initialize', async (req, res) => {
     try {
